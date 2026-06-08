@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0xnakamura — losing money slowly, learning fast.</title>
+<meta name="description" content="CS student. I trade options, build side projects, and write about the fintech and dev tools I actually use. Honest takes from someone in the middle of figuring it out.">
+<meta property="og:title" content="0xnakamura">
+<meta property="og:description" content="Losing money slowly, learning fast.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08080f;
+    --bg2: #0d0d1a;
+    --bg3: #121220;
+    --cyan: #00e5ff;
+    --pink: #e040fb;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --border: #1a1a2e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  ::selection { background: var(--cyan); color: var(--bg); }
+
+  .noise {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 200px;
+  }
+
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.4;
+  }
+
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 1.25rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8, 8, 15, 0.85);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--cyan);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+
+  .nav-logo span { color: var(--pink); }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--cyan); }
+
+  main { position: relative; z-index: 1; }
+
+  section { padding: 7rem 2rem; max-width: 860px; margin: 0 auto; }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 5rem;
+    max-width: 100%;
+    padding-left: 6vw;
+    padding-right: 6vw;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.2s;
+  }
+
+  .hero-eyebrow span {
+    color: var(--cyan);
+    margin-right: 0.5rem;
+  }
+
+  .hero-name {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.35s;
+  }
+
+  .hero-name .zero { color: var(--cyan); }
+  .hero-name .x { color: var(--pink); }
+
+  .hero-tagline {
+    font-size: clamp(0.85rem, 2vw, 1.05rem);
+    color: var(--muted);
+    font-weight: 300;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.5s;
+  }
+
+  .hero-tagline em {
+    font-style: normal;
+    color: var(--text);
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.65s;
+  }
+
+  .btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 2px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--cyan);
+    color: var(--bg);
+  }
+
+  .btn-primary:hover {
+    background: #fff;
+    color: var(--bg);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  .section-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 60px;
+  }
+
+  .about-text {
+    font-size: 0.95rem;
+    line-height: 1.9;
+    color: var(--muted);
+    max-width: 620px;
+  }
+
+  .about-text strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .about-text .highlight {
+    color: var(--cyan);
+    font-weight: 500;
+  }
+
+  .links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  .link-card {
+    background: var(--bg2);
+    padding: 1.75rem;
+    text-decoration: none;
+    display: block;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .link-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--cyan);
+    transform: scaleX(0);
+    transition: transform 0.2s;
+    transform-origin: left;
+  }
+
+  .link-card:hover { background: var(--bg3); }
+  .link-card:hover::before { transform: scaleX(1); }
+  .link-card.pink::before { background: var(--pink); }
+
+  .link-card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .link-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  .link-card-desc {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .link-card-arrow {
+    position: absolute;
+    top: 1.75rem;
+    right: 1.75rem;
+    color: var(--muted);
+    font-size: 1rem;
+    transition: color 0.2s, transform 0.2s;
+  }
+
+  .link-card:hover .link-card-arrow {
+    color: var(--cyan);
+    transform: translate(2px, -2px);
+  }
+
+  .link-card.pink:hover .link-card-arrow { color: var(--pink); }
+
+  .email-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .email-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--pink));
+  }
+
+  .email-heading {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.02em;
+  }
+
+  .email-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    line-height: 1.7;
+    max-width: 480px;
+  }
+
+  .email-form {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .email-input {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.75rem 1rem;
+    border-radius: 2px;
+    flex: 1;
+    min-width: 220px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .email-input::placeholder { color: var(--muted); }
+  .email-input:focus { border-color: var(--cyan); }
+
+  .tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
+
+  .tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 2px;
+  }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 2rem 6vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-left {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .footer-left span { color: var(--cyan); }
+
+  .footer-right {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .blink {
+    animation: blink 1.2s step-end infinite;
+    color: var(--cyan);
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 600px) {
+    nav { padding: 1rem 1.25rem; }
+    .nav-links { gap: 1.25rem; }
+    section { padding: 5rem 1.25rem; }
+    .email-section { padding: 2rem 1.25rem; }
+    footer { padding: 1.5rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+<div class="grid-bg"></div>
+
+<nav>
+  <a href="#" class="nav-logo"><span>0x</span>nakamura</a>
+  <ul class="nav-links">
+    <li><a href="#about">about</a></li>
+    <li><a href="#writing">writing</a></li>
+    <li><a href="#subscribe">subscribe</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="hero">
+    <p class="hero-eyebrow"><span>//</span> cs student. trader. builder.</p>
+    <h1 class="hero-name">
+      <span class="zero">0x</span>na<br>kamura
+    </h1>
+    <p class="hero-tagline">
+      losing money slowly, <em>learning fast.</em>
+    </p>
+    <div class="hero-cta">
+      <a href="#subscribe" class="btn btn-primary">subscribe</a>
+      <a href="#writing" class="btn btn-ghost">read the blog</a>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <section id="about">
+    <p class="section-label fade-in">about</p>
+    <p class="about-text fade-in">
+      Hey, I'm <strong>Kai</strong>. CS student who trades on the side and builds too many side projects.
+      I write about <span class="highlight">fintech tools</span>, markets, dev tools, and what actually happens
+      when you try to navigate all of this with no roadmap.<br><br>
+      Started trading equities last year. Moved into options and crypto this year.
+      Lost money. Not a lot, but enough to learn something. This blog is the stuff I
+      actually wish existed when I was getting started.<br><br>
+      No expertise. No guarantees. Just honest takes from someone still very much in the middle of it.
+    </p>
+    <div class="tags fade-in">
+      <span class="tag">fintech</span>
+      <span class="tag">options</span>
+      <span class="tag">crypto</span>
+      <span class="tag">dev tools</span>
+      <span class="tag">building in public</span>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section id="writing">
+    <p class="section-label fade-in">writing</p>
+    <div class="links-grid fade-in">
+      <a href="https://hashnode.com/@0xnakamura" target="_blank" class="link-card">
+        <span class="link-card-arrow">↗</span>
+        <p class="link-card-label">primary blog</p>
+        <p class="link-card-title">Hashnode</p>
+        <p class="link-card-desc">Long form posts on fintech, trading tools, and the occasional dev rabbit hole.</p>
+      </a>
+      <a href="https://medium.com/@0xnakamura" target="_blank" class="link-card pink">
+        <span class="link-card-arrow">↗</span>
+        <p class="link-card-label">cross-posted</p>
+        <p class="link-card-title">Medium</p>
+        <p class="link-card-desc">Same content, wider audience. Follow here if you already live on Medium.</p>
+      </a>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section id="subscribe">
+    <p class="section-label fade-in">the 0x letter</p>
+    <div class="email-section fade-in">
+      <h2 class="email-heading">stay in the loop<span class="blink">_</span></h2>
+      <p class="email-sub">
+        Occasional emails when something worth sharing comes up. No spam, no weekly cadence pressure.
+        Just the good stuff when it exists.
+      </p>
+      <div class="email-form">
+        <input type="email" class="email-input" placeholder="your@email.com">
+        <a href="https://the0xletter.beehiiv.com" target="_blank" class="btn btn-primary">subscribe</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p class="footer-left"><span>0x</span>nakamura &copy; 2026</p>
+  <p class="footer-right">losing money slowly, learning fast.</p>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
